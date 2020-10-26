@@ -3,7 +3,7 @@ This is a repository containing scripts to launch jobs with SLURM.
 
 
 ## Training
-
+0. Requeue the job itself automatically after time-out.
 1. Mirroring the structure of config files with checkpoints
     1. Config file: `<path/to>/your_project/experiment_name.cfg`
     2. Checkpoint folder: `<path/to/checkpoints>/your_project/experiment_name/`
@@ -13,7 +13,7 @@ This is a repository containing scripts to launch jobs with SLURM.
     3. Checkpoints
 3. Detailed information in squeue:
     1. `your_project:experiment_name`
-4. Requeue the job itself automatically after time-out.
+4. Adding new flags in `--extra` will create a new job with corresponding suffix.
 5. Error checking:
     1. Prevent restarting a training job that’ll overwrite existing checkpoints
     2. Prevent continue training from nowhere
