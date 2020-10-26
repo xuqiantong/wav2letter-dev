@@ -13,8 +13,7 @@ parser.add_argument('--logdir', type=pathlib.Path)
 parser.add_argument('--prefix', type=str)
 parser.add_argument('--binary', type=pathlib.Path)
 
-parser.add_argument('--perturb', type=str,
-                    default="/private/home/qiantong/wav2letter_experiments/decoder_sweep/perturb_parameters.py")
+parser.add_argument('--perturb', type=str, default="")
 parser.add_argument('--local', action='store_true')
 parser.add_argument('--partition', type=str, default='learnfair')
 parser.add_argument('--n', type=int, default=8)
@@ -73,6 +72,8 @@ srun sh {}/sub_${{SLURM_ARRAY_TASK_ID}}.sh
 if __name__ == '__main__':
     args = parser.parse_args()
 
+    if len(args.perturb) == 0:
+        args.perturb = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'perturb_parameters.py')
     spec = importlib.util.spec_from_file_location("module.name", args.perturb)
     perturb = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(perturb)

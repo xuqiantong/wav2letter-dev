@@ -89,6 +89,7 @@ def _format_slrum_params(slrum_params):
 
 
 def _get_slrum_params(partition='learnfair',
+                      comment='wav2letter',
                       cpus_per_task=10,
                       gpus=16,
                       gpu32=True,
@@ -108,14 +109,14 @@ def _get_slrum_params(partition='learnfair',
     slrum_params['nodes'] = max(1, gpus // 8)
     slrum_params['time'] = f'{hours}:00:00'
     slrum_params['mem'] = f'{mem_per_gpu * max(1, ntasks)}GB'
-    slrum_params['signal'] = 'B:USR1@200'
+    slrum_params['signal'] = 'B:USR1@600'
     slrum_params['comment'] = 'icassp'
     slrum_params['open-mode'] = 'append'
 
     return slrum_params
 
 
-def main(binary, mode, config, model_path, extra, partition, ngpu, gpu16, cpus_per_task, mem_per_gpu, hours, local):
+def main(binary, mode, config, model_path, extra, partition, comment, ngpu, gpu16, cpus_per_task, mem_per_gpu, hours, local):
     assert binary.exists(), binary
     assert config.exists(), config
 
@@ -185,6 +186,7 @@ def main(binary, mode, config, model_path, extra, partition, ngpu, gpu16, cpus_p
 
     job_script = JOB_TEMPLATE.format(
         prerequesits='',
+        comment=comment,
         binary=binary,
         mode=mode,
         model_path=os.path.join(log_dir, exp_id),
@@ -241,6 +243,7 @@ if __name__ == '__main__':
     parser.add_argument('--extra', type=str, default='')
     ## sbatch
     parser.add_argument('--partition', type=str, default='learnfair')
+    parser.add_argument('--comment', type=str, default='wav2letter')
     parser.add_argument('--ngpu', type=int, default=8)
     parser.add_argument('--gpu16', action='store_true')
     parser.add_argument('--cpus_per_task', type=int, default=10)
