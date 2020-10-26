@@ -67,7 +67,7 @@ python3 train.py \
 ```
 python3 train.py \
 --binary=<path/to>/wav2letter/build/Train \
---mode=continue --config=<path/to>/your_project/experiment_name.cfg \
+--mode=fork --config=<path/to>/your_project/experiment_name.cfg \
 --model_path=<path/to/another/experiment>/checkpoint.bin \
 --ngpu=64 --partition=learnfair
 ```
