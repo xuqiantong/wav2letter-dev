@@ -2,6 +2,21 @@
 This is a repository containing scripts to launch jobs with SLURM.
 
 
+To check the status of running jobs:
+```sh
+$ squeue -o "%.10i %.9P %35j %.8u %.2t %.10M %.6D %R" -p rasr,priority,dev -u padentomasello,gab,avidov,qiantong
+     JOBID PARTITION NAME                                    USER ST       TIME  NODES NODELIST(REASON)
+  32221800       dev forward                             qiantong  R    1:09:43      1 learnfair0253
+  32221801       dev forward                             qiantong  R    1:09:43      1 learnfair0281
+  32221802       dev forward                             qiantong  R    1:09:43      1 learnfair0374
+  32220798       dev forward                             qiantong  R    3:25:44      1 learnfair0565
+  32098163      rasr 256_GPU:24                          qiantong  R 2-19:08:17     16 learnfair[1186-1187,1190,1194,1200,1204-1206,1209,1211,1964,1977-1979,1985-1986]
+  32214553      rasr 256_GPU:34                          qiantong  R    9:53:49     16 learnfair[1179-1180,1184-1185,1188,1192,1203,1207-1208,1210,1213,1960,1962,1969,1982-1983]
+  31815622  priority w2v_pl:ls_1h_rescore_ltr_ctc          avidov  R 1-08:26:49      4 learnfair[5101,5188,5190,5193]
+  32086525  priority w2v_pl:10h_rescore                  qiantong  R   11:31:47      8 learnfair[1359,1380,1383,1409,1439,1613,1664,1678]
+  32025852  priority swbd:13                             qiantong  R 1-23:53:06      4 learnfair[2194,2339,2354,2419]
+```
+
 ## Training
 0. Requeue the job itself automatically after time-out.
 1. Mirroring the structure of config files with checkpoints

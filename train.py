@@ -109,7 +109,7 @@ def _get_slrum_params(partition='learnfair',
     slrum_params['nodes'] = max(1, gpus // 8)
     slrum_params['time'] = f'{hours}:00:00'
     slrum_params['mem'] = f'{mem_per_gpu * max(1, ntasks)}GB'
-    slrum_params['signal'] = 'B:USR1@600'
+    slrum_params['signal'] = 'B:USR1@200'
     slrum_params['comment'] = 'icassp'
     slrum_params['open-mode'] = 'append'
 
