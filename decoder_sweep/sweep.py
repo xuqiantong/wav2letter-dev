@@ -17,6 +17,9 @@ parser.add_argument('--perturb', type=str, default="")
 parser.add_argument('--local', action='store_true')
 parser.add_argument('--partition', type=str, default='learnfair')
 parser.add_argument('--n', type=int, default=8)
+parser.add_argument('--gpu', type=int, default=1)
+parser.add_argument('--cpu', type=int, default=10)
+parser.add_argument('--hour', type=int, default=10)
 
 parser.add_argument('--test', type=str, default="dev-other.lst")
 parser.add_argument('--beamsize', type=int, default=10)
@@ -36,8 +39,10 @@ parser.add_argument('--eosscore', type=float, default=0.)
 parser.add_argument('--wordscore', type=float, default=0.)
 parser.add_argument('--lmweight', type=float, default=0.)
 parser.add_argument('--attentionthreshold', type=int, default=10000)
-parser.add_argument('--maxdecoderoutputlen', type=int, default=0)
-parser.add_argument('--lexicon', type=str, default="")
+parser.add_argument('--maxdecoderoutputlen', type=int, default=None)
+parser.add_argument('--lexicon', type=str, default=None)
+parser.add_argument('--tokens', type=str, default=None)
+parser.add_argument('--tokensdir', type=str, default=None)
 
 # Templates
 sbatch_cmd = """#!/bin/bash
@@ -49,11 +54,11 @@ sbatch_cmd = """#!/bin/bash
 #SBATCH --partition={}
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gres=gpu:1
-#SBATCH --cpus-per-task=10
+#SBATCH --gres=gpu:{}
+#SBATCH --cpus-per-task={}
 #SBATCH --mem-per-cpu=6G
 #SBATCH --open-mode=append
-#SBATCH --time=10:00:00
+#SBATCH --time{}:00:00
 #SBATCH --array=0-{}%{}
 #SBATCH -C volta32gb
 
@@ -73,7 +78,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if len(args.perturb) == 0:
-        args.perturb = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'perturb_parameters.py')
+        args.perturb = os.path.join(os.path.dirname(
+            os.path.realpath(__file__)), 'perturb_parameters.py')
     spec = importlib.util.spec_from_file_location("module.name", args.perturb)
     perturb = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(perturb)
@@ -91,10 +97,13 @@ if __name__ == '__main__':
     sub_sh_path = os.path.join(log_dir, 'sub_{}.sh')
     with open(run_sh_path, 'w') as f:
         f.write(sbatch_cmd.format(log_dir, log_dir, args.prefix,
-                                  args.partition, args.n-1, args.n, log_dir))
+                                  args.partition, args.gpu, args.cpu, 
+                                  args.hour, args.n-1, args.n, log_dir))
 
-    ignore_args = ['n', 'local', 'prefix',
-                   'partition', 'binary', 'logdir', 'perturb']
+    ignore_args = set(['n', 'local', 'prefix', 'gpu', 'cpu', 'hour',
+                   'partition', 'binary', 'logdir', 'perturb'])
+    override_args = set(['datadir', 'lexicon', 'tokens', 'tokensdir', 'maxdecoderoutputlen'])
+    
     for i in range(args.n):
         args = perturb.perturb_parameters(args)
 
@@ -110,14 +119,11 @@ if __name__ == '__main__':
                 if arg in ignore_args:
                     continue
                 k, v = arg, getattr(args, arg)
+                if k in override_args and not v:
+                    continue
+                
                 if k == 'lm' and args.lmtype == 'kenlm' and not args.local:
                     v = "/scratch/slurm_tmpdir/$SLURM_JOB_ID/lm.bin"
-                if k == 'datadir' and not v:
-                    continue
-                if k == 'lexicon' and v == '':
-                    continue
-                if k == 'maxdecoderoutputlen' and v == 0:
-                    continue
                 f.write('--{}={} '.format(k, v))
 
             f.write('--logtostderr --show')
