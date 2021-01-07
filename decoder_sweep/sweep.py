@@ -8,7 +8,7 @@ import importlib
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--am', type=pathlib.Path)
-parser.add_argument('--lm', type=pathlib.Path)
+parser.add_argument('--lm', type=str)
 parser.add_argument('--logdir', type=pathlib.Path)
 parser.add_argument('--prefix', type=str)
 parser.add_argument('--binary', type=pathlib.Path)
@@ -43,6 +43,7 @@ parser.add_argument('--maxdecoderoutputlen', type=int, default=None)
 parser.add_argument('--lexicon', type=str, default=None)
 parser.add_argument('--tokens', type=str, default=None)
 parser.add_argument('--tokensdir', type=str, default=None)
+parser.add_argument('--logadd', type=str, default="false")
 
 # Templates
 sbatch_cmd = """#!/bin/bash
@@ -58,7 +59,7 @@ sbatch_cmd = """#!/bin/bash
 #SBATCH --cpus-per-task={}
 #SBATCH --mem-per-cpu=6G
 #SBATCH --open-mode=append
-#SBATCH --time{}:00:00
+#SBATCH --time={}:00:00
 #SBATCH --array=0-{}%{}
 #SBATCH -C volta32gb
 

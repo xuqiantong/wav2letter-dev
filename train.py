@@ -16,12 +16,11 @@ SBATCH_TEMPLATE = """#!/bin/bash
 
 # 1. Load modules
 module purge
-module load cuda/10.0
-module load cudnn/v7.6-cuda.10.0
-module load NCCL/2.4.7-1-cuda.10.0
-module load mkl/2018.0.128
-module unload kenlm # kenlm loads boost and causes pb to AF
-module load gcc/6.3.0 
+module load cuda/11.0
+module load cudnn/v8.0.3.33-cuda.11.0
+module load NCCL/2.8.3-1-cuda.11.0
+module load intel/mkl/2020.3.279
+module load kenlm/010421/gcc.9.3.0
 
 # 2. Signal handler
 trap_handler () {{
@@ -43,7 +42,7 @@ trap 'trap_handler USR1' USR1
 trap 'trap_handler TERM' TERM
 
 # 3. Your job
-mpirun {job_script}
+/usr/mpi/gcc/openmpi-4.0.4rc3/bin/orterun {job_script}
 
 # 4. sleep 60 days in the background
 sleep 5184000 &
@@ -104,13 +103,13 @@ def _get_slrum_params(partition='learnfair',
     slrum_params['partition'] = partition
     slrum_params['gres'] = f'gpu:volta:{ntasks}'
     if gpu32:
-        slrum_params['constraint'] = 'volta32gb'
+        slrum_params['constraint'] = 'volta32gb,bldg2'
     slrum_params['ntasks-per-node'] = ntasks
     slrum_params['nodes'] = max(1, gpus // 8)
     slrum_params['time'] = f'{hours}:00:00'
     slrum_params['mem'] = f'{mem_per_gpu * max(1, ntasks)}GB'
     slrum_params['signal'] = 'B:USR1@200'
-    slrum_params['comment'] = 'icassp'
+    slrum_params['comment'] = 'flashlight_h2_release'
     slrum_params['open-mode'] = 'append'
 
     return slrum_params
@@ -154,7 +153,7 @@ def main(binary, mode, config, model_path, extra, partition, comment, ngpu, gpu1
             print('Skipping')
             return
 
-        flags += f" --runname={exp_id} --rundir={log_dir}"
+        flags += f" --rundir={log_dir}/{exp_id}"
 
         if mode == 'fork':
             flags = f"{model_path} " + flags

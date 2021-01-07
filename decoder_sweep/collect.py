@@ -45,5 +45,5 @@ if __name__ == '__main__':
 
     sorted_res = sorted(results.items(), key=lambda x: x[1][0])
     print(len(sorted_res), '/', len(log_files))
-    for k, v in sorted_res[:10]:
+    for k, v in sorted_res[:1]:
         print(k, "WER:", v[0], "LER:", v[1], "params:", v[2])
