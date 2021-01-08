@@ -3,6 +3,7 @@ import subprocess
 import os
 import stat
 import shutil
+from datetime import datetime
 
 ############## Global Variable ##############
 USERNAME = os.environ.get('USER')
@@ -126,15 +127,13 @@ def main(binary, mode, config, model_path, extra, partition, comment, ngpu, gpu1
     ### 1. Parse Mode ###
     #####################
 
+    timestamp = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+
     # Train mode
     if mode == 'train' or mode == 'fork':
         exp_name = config.parent.name
         exp_id, _ = config.name.rsplit('.', 1)
         exp_id += _format_extra_flags(extra)
-
-        flags = f"--flagsfile={config} --logtostderr=1 {extra} --emission_dir=/scratch/slurm_tmpdir/${{SLURM_JOB_ID}}"
-        if ngpu > 1:
-            flags += ' --enable_distributed'
 
         log_dir = os.path.join(LOG_ROOT, exp_name)
         if local:
@@ -152,6 +151,15 @@ def main(binary, mode, config, model_path, extra, partition, comment, ngpu, gpu1
             print('Exists:', checkpoint_path)
             print('Skipping')
             return
+
+        # Backup the config file to sub_log_dir
+        config_copy = os.path.join(
+            sub_log_dir, os.path.basename(config)) + '-' + timestamp
+        shutil.copy(config, config_copy)
+
+        flags = f"--flagsfile={config_copy} --logtostderr=1 {extra} --emission_dir=/scratch/slurm_tmpdir/${{SLURM_JOB_ID}}"
+        if ngpu > 1:
+            flags += ' --enable_distributed'
 
         flags += f" --rundir={log_dir}/{exp_id}"
 
@@ -179,6 +187,13 @@ def main(binary, mode, config, model_path, extra, partition, comment, ngpu, gpu1
         print('Skipping')
         return
 
+    # Backup the binary to sub_log_dir
+    binary_copy = os.path.join(
+        sub_log_dir, os.path.basename(binary)) + '-' + timestamp
+    shutil.copy(binary, binary_copy)
+
+    print("rundir: ", sub_log_dir)
+
     ############################
     ### 2. Create Job Script ###
     ############################
@@ -186,7 +201,7 @@ def main(binary, mode, config, model_path, extra, partition, comment, ngpu, gpu1
     job_script = JOB_TEMPLATE.format(
         prerequesits='',
         comment=comment,
-        binary=binary,
+        binary=binary_copy,
         mode=mode,
         model_path=os.path.join(log_dir, exp_id),
         flags=flags,
