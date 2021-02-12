@@ -42,7 +42,7 @@ trap 'trap_handler USR1' USR1
 trap 'trap_handler TERM' TERM
 
 # 3. Your job
-/usr/mpi/gcc/openmpi-4.0.4rc3/bin/orterun {job_script}
+srun {job_script}
 
 # 4. sleep 60 days in the background
 sleep 5184000 &
@@ -56,6 +56,7 @@ JOB_TEMPLATE = """#!/bin/bash
 
 # 2. training script
 if [ -f {model_path}/001_model_last.bin ]; then
+  rm {model_path}/rndv/*
   {binary} continue {model_path} {flags} 
 else
   {binary} {mode} {flags}
@@ -153,7 +154,12 @@ def main(binary, mode, config, model_path, extra, partition, comment, ngpu, gpu1
             print('Skipping')
             return
 
-        flags += f" --rundir={log_dir}/{exp_id}"
+        flags += f" --rundir={sub_log_dir}"
+
+        rndv_dir = os.path.join(sub_log_dir, "/rndv")
+        flags += f" --rndv_filepath={rndv_dir}"
+        flags += f" --world_size={ngpu}"
+        flags += " --world_rank=${SLURM_PROCID}"
 
         if mode == 'fork':
             flags = f"{model_path} " + flags
