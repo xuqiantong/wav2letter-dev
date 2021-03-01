@@ -56,7 +56,6 @@ JOB_TEMPLATE = """#!/bin/bash
 
 # 2. training script
 if [ -f {model_path}/001_model_last.bin ]; then
-  rm {model_path}/rndv/*
   {binary} continue {model_path} {flags} 
 else
   {binary} {mode} {flags}
@@ -133,7 +132,7 @@ def main(binary, mode, config, model_path, extra, partition, comment, ngpu, gpu1
         exp_id, _ = config.name.rsplit('.', 1)
         exp_id += _format_extra_flags(extra)
 
-        flags = f"--flagsfile={config} --logtostderr=1 {extra} --emission_dir=/scratch/slurm_tmpdir/${{SLURM_JOB_ID}}"
+        flags = f"--flagsfile={config} --logtostderr=1 {extra} --emission_dir=/scratch/slurm_tmpdir/${{SLURM_JOB_ID}} "
         if ngpu > 1:
             flags += ' --enable_distributed'
 
@@ -155,11 +154,10 @@ def main(binary, mode, config, model_path, extra, partition, comment, ngpu, gpu1
             return
 
         flags += f" --rundir={sub_log_dir}"
-
-        rndv_dir = os.path.join(sub_log_dir, "/rndv")
-        flags += f" --rndv_filepath={rndv_dir}"
-        flags += f" --world_size={ngpu}"
-        flags += " --world_rank=${SLURM_PROCID}"
+        flags += f" --rndv_filepath={sub_log_dir}"
+        if not local:
+            flags += f" --world_size={ngpu}"
+            flags += " --world_rank=${SLURM_PROCID}"
 
         if mode == 'fork':
             flags = f"{model_path} " + flags
