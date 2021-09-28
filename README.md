@@ -130,14 +130,14 @@ python3 decoder_sweep/collect.py \
 
 ### LM forwarding
 ```
-sbatch decoder_sweep/transformer_forward.sh <...>/my_experiment_dump dev-clean
+sbatch rescore/transformer_forward.sh <...>/my_experiment_dump dev-clean
 ```
 
 ### Rescoring 
 
 #### Grid search
 ```
-python3 decoder_sweep/rescore.py \
+python3 rescore/rescore.py \
 --hyp=<...>/my_experiment_dump/dev-clean.lst.hyp \
 --tr=<...>/my_experiment_dump/dev-clean-tr.ppl \
 --list=<ground_truth_of>/dev-clean.lst \
@@ -146,7 +146,7 @@ python3 decoder_sweep/rescore.py \
 
 #### Evaluation
 ```
-python3 decoder_sweep/rescore.py \
+python3 rescore/rescore.py \
 --hyp=<...>/my_experiment_dump/dev-clean.lst.hyp \
 --tr=<...>/my_experiment_dump/dev-clean-tr.ppl \
 --list=<ground_truth_of>/dev-clean.lst \
